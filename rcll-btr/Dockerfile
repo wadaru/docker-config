@@ -34,6 +34,6 @@ RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-gro
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # COPY ./ros-noetic-desktop.sh /ros-noetic-desktop.sh
 # RUN mkdir -p /tmp/ros_setup_scripts_ubuntu && mv /ros-noetic-desktop.sh /tmp/ros_setup_scripts_ubuntu/ && \
-    gosu robotino /tmp/ros_setup_scripts_ubuntu/ros-noetic-desktop.sh && \
-    rm -rf /var/lib/apt/lists/*
+#     gosu robotino /tmp/ros_setup_scripts_ubuntu/ros-noetic-desktop.sh && \
+#     rm -rf /var/lib/apt/lists/*
 ENV USER robotino
