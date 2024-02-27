@@ -1,4 +1,4 @@
-FROM tiryoh/ros-desktop-vnc:melodic
+FROM --platform=linux/x86_64 tiryoh/ros-desktop-vnc:noetic
 LABEL maintainer="Wataru Uemmura<wataru@kdel.org>"
 
 RUN apt-get update -q && \
@@ -13,11 +13,11 @@ RUN apt-get update -q && \
                      libssl-dev libgecode-dev \
                      libncurses5-dev cmake-curses-gui \
                      libmbedtls-dev g++ libtinfo5 \
-                     libspdlog-dev && \
+                     libspdlog-dev libspdlog1&& \
     rm -rf /var/lib/apt/lists/*
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-                     libspdlog1 && \
-    rm -rf /var/lib/apt/lists/*
+# RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+#                      libspdlog1 && \
+#     rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /tmp/clips && cd /tmp/clips && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
