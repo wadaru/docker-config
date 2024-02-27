@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  refbox:
+    container_name: refbox
+    image: "${REFBOX_IMAGE}:${REFBOX_TAG}"
+    # network_mode: "host"
+    ports:
+      - 4444:4444
+      - 4445:4445
+      - 4446:4446
+      - 4447:4447
+      - 4441:4441
+      - 4442:4442
+      - 8088:8088
+      - 1234:1234
+    depends_on:
+      - mongodb
+    restart: "on-failure"
+    command: llsf-refbox --dump-cfg
+    volumes:
+      - ${REFBOX_CONFIG_GAME}:/etc/rcll-refbox/game/default_game.yaml
+      - ${REFBOX_CONFIG_SIMULATION}:/etc/rcll-refbox/simulation/default_simulation.yaml
+      - ${REFBOX_CONFIG_COMM}:/etc/rcll-refbox/comm/default_comm.yaml
+      - ${REFBOX_CONFIG_MPS}:/etc/rcll-refbox/mps/default_mps.yaml
+      - ${REFBOX_CONFIG_TEAM}:/etc/rcll-refbox/team/default_team.yaml
+      - ${REFBOX_CONFIG_CHALLENGE}:/etc/rcll-refbox/challenges/default_challenges.yaml
+      - ${REFBOX_CONFIG_MONGODB}:/etc/rcll-refbox/mongodb/default_mongodb.yaml
+
+  frontend:
+    container_name: refbox-frontend
+    image: "${REFBOX_FRONTEND_IMAGE}:${REFBOX_FRONTEND_TAG}"
+    # network_mode: "host"
+    ports:
+     - 80:80
+    restart: "no"
+  mongodb:
+    container_name: "mongodb"
+    # network_mode: "host"
+    ports:
+      - 27017:27017
+    image: mongo
+    restart: "no"
+    volumes:
+      - './data:/data/db'
