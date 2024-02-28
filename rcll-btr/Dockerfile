@@ -15,9 +15,6 @@ RUN apt-get update -q && \
                      libmbedtls-dev g++ libtinfo5 \
                      libspdlog-dev libspdlog1&& \
     rm -rf /var/lib/apt/lists/*
-# RUN DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-#                      libspdlog1 && \
-#     rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /tmp/clips && cd /tmp/clips && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
@@ -28,7 +25,12 @@ RUN mkdir -p /tmp/clips && cd /tmp/clips && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm_0.3.4-1ppa1~bionic1_amd64.deb && \
     dpkg -i *.deb && \
     rm -rf /tmp/clips
-
+RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
+    git clone https://github.com/freeopcua/freeopcua && \
+    cd /tmp/opcua/freeopcua && \
+    cmake . && \
+    make && sudo make install && sudo ldconfig && \
+    rm -rf /tmp/opcua
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
     echo robotino:robotino | chpasswd && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
