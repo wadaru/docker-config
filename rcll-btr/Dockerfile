@@ -56,11 +56,40 @@ RUN cd /home/robotino && \
     git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
-    make 
+    make  && \
+    rm -rf /home/robotino/docker-config
 #
 ### install RobView
 RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
     apt-get update -q && apt-get install -yq robview4 aruco libopen62541 librealsense2 urg-library
 #
+### install ros for BabyTigers-R
+RUN apt-get update -q && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      ros-noetic-actionlib ros-noetic-pcl-ros ros-noetic-geometry ros-noetic-image-common \
+      ros-noetic-image-transport-plugins ros-noetic-navigation \
+      libpcl-conversions-dev libtf-conversions-dev libvisualization-msgs-dev \
+      libudev-dev curl libtolua-dev
+    # rosdep init && \
+    # rosdep update
+#
+### for rplidar
+RUN apt-get update -q && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      ros-noetic-catkin ros-noetic-rplidar-ros && \
+    mkdir -p /home/robotino/catkin_ws/src && \
+    cd /home/robotino/catkin_ws/src && \
+    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_init_workspace" && \
+    cd /home/robotino/catkin_ws && \
+    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    cd /home/robotino/catkin_ws/src && \
+    git clone https://github.com/Slamtec/rplidar_ros.git && \
+    cd /home/robotino/catkin_ws && \
+    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    echo "source ~/catkin_ws/devel/setup.bash" >> /home/robotino/.bashrc  && \
+    chown -R robotino:robotino /home/robotino
+
+#
+### 
 ENV USER robotino
