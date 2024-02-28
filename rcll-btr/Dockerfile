@@ -38,7 +38,7 @@ RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
 #
 ### add user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
-    echo robotino:robotino | chpasswd && \
+    \ #echo robotino:robotino | chpasswd && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # COPY ./ros-noetic-desktop.sh /ros-noetic-desktop.sh
 # RUN mkdir -p /tmp/ros_setup_scripts_ubuntu && mv /ros-noetic-desktop.sh /tmp/ros_setup_scripts_ubuntu/ && \
@@ -122,8 +122,21 @@ RUN dpkg --add-architecture i386 && \
     gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
     gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
     chmod +x /home/robotino/robotinoSimDemo.sh 
-
 #
-###
+#
+### for gnome-terminal
+RUN apt-get upgrade -yq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      gnome
+#
+### for ssh server
+RUN mkdir /var/run/sshd && \
+    /bin/bash -c "sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config" && \
+    /bin/bash -c "echo robotino:robotino | chpasswd" && \
+    /bin/bash -c "update-rc.d ssh defaults"
+CMD ["/usr/sbin/sshd", "-D"]
+#
+#
+#
 RUN chown -R robotino:robotino /home/robotino
 ENV USER robotino
