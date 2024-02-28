@@ -15,6 +15,8 @@ RUN apt-get update -q && \
                      libmbedtls-dev g++ libtinfo5 \
                      libspdlog-dev libspdlog1&& \
     rm -rf /var/lib/apt/lists/*
+#
+### install CLIPS
 RUN mkdir -p /tmp/clips && cd /tmp/clips && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
@@ -25,12 +27,16 @@ RUN mkdir -p /tmp/clips && cd /tmp/clips && \
     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm_0.3.4-1ppa1~bionic1_amd64.deb && \
     dpkg -i *.deb && \
     rm -rf /tmp/clips
+#
+### install opcua
 RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
     git clone https://github.com/freeopcua/freeopcua && \
     cd /tmp/opcua/freeopcua && \
     cmake . && \
     make && sudo make install && sudo ldconfig && \
     rm -rf /tmp/opcua
+#
+### add user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
     echo robotino:robotino | chpasswd && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -38,4 +44,23 @@ RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-gro
 # RUN mkdir -p /tmp/ros_setup_scripts_ubuntu && mv /ros-noetic-desktop.sh /tmp/ros_setup_scripts_ubuntu/ && \
 #     gosu robotino /tmp/ros_setup_scripts_ubuntu/ros-noetic-desktop.sh && \
 #     rm -rf /var/lib/apt/lists/*
+# 
+### install refbox
+RUN cd /home/robotino && \
+    apt-get update -q && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      libmicrohttpd-dev rapidjson-dev libaprutil1-dev libwebsocketpp-dev && \
+    git clone https://github.com/robocup-logistics/rcll-refbox.git && \
+    git clone https://github.com/wadaru/docker-config && \
+    cd /home/robotino/rcll-refbox && \
+    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
+    make 
+#
+### install RobView
+RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
+    sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
+    apt-get update -q && apt-get install -yq robview4 aruco libopen62541 librealsense2 urg-library
+#
 ENV USER robotino
