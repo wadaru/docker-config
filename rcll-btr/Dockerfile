@@ -14,7 +14,22 @@ RUN apt-get update -q && \
                      libncurses5-dev cmake-curses-gui \
                      libmbedtls-dev g++ libtinfo5 \
                      libspdlog-dev libspdlog1&& \
-    rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+                     libmicrohttpd-dev rapidjson-dev libaprutil1-dev libwebsocketpp-dev gosu && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      ros-noetic-actionlib ros-noetic-pcl-ros ros-noetic-geometry ros-noetic-image-common \
+      ros-noetic-image-transport-plugins ros-noetic-navigation \
+      libpcl-conversions-dev libtf-conversions-dev libvisualization-msgs-dev \
+      libudev-dev curl libtolua-dev && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      ros-noetic-catkin &&\
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      gnome && \
+    dpkg --add-architecture i386 && \
+    apt-get update -q && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+      wine32 gosu
+#    rm -rf /var/lib/apt/lists/*
 #
 ### install CLIPS
 RUN mkdir -p /tmp/clips && cd /tmp/clips && \
@@ -33,110 +48,86 @@ RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
     git clone https://github.com/freeopcua/freeopcua && \
     cd /tmp/opcua/freeopcua && \
     cmake . && \
-    make && sudo make install && sudo ldconfig && \
+    make -j"$(nproc)"&& sudo make install && sudo ldconfig && \
     rm -rf /tmp/opcua
 #
 ### add user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
-    \ #echo robotino:robotino | chpasswd && \
+    echo robotino:robotino | chpasswd && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-# COPY ./ros-noetic-desktop.sh /ros-noetic-desktop.sh
-# RUN mkdir -p /tmp/ros_setup_scripts_ubuntu && mv /ros-noetic-desktop.sh /tmp/ros_setup_scripts_ubuntu/ && \
-#     gosu robotino /tmp/ros_setup_scripts_ubuntu/ros-noetic-desktop.sh && \
-#     rm -rf /var/lib/apt/lists/*
 # 
 ### install refbox
 RUN cd /home/robotino && \
-    apt-get update -q && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      libmicrohttpd-dev rapidjson-dev libaprutil1-dev libwebsocketpp-dev gosu && \
-    gosu robotino git clone https://github.com/robocup-logistics/rcll-refbox.git && \
-    gosu robotino git clone https://github.com/wadaru/docker-config && \
+    git clone https://github.com/robocup-logistics/rcll-refbox.git && \
+    git clone https://github.com/wadaru/docker-config && \
     cd /home/robotino/rcll-refbox && \
-    gosu robotino git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
-    gosu robotino cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
-    gosu robotino cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
-    gosu robotino make  && \
-    rm -rf /home/robotino/docker-config
+    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
+    make -j"$(nproc)" && \
+    rm -rf /home/robotino/docker-config && \
+    chown -R robotino:robotino /home/robotino
 #
 ### install RobView
 RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
-    apt-get update -q && apt-get install -yq robview4 aruco libopen62541 librealsense2 urg-library
-#
-### install ros for BabyTigers-R
-RUN apt-get update -q && \
+    apt-get update -q && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      ros-noetic-actionlib ros-noetic-pcl-ros ros-noetic-geometry ros-noetic-image-common \
-      ros-noetic-image-transport-plugins ros-noetic-navigation \
-      libpcl-conversions-dev libtf-conversions-dev libvisualization-msgs-dev \
-      libudev-dev curl libtolua-dev
-    # rosdep init && \
-    # rosdep update
+        robview4 aruco libopen62541 librealsense2 urg-library
+#
 #
 ### for rplidar
-RUN apt-get update -q && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      ros-noetic-catkin ros-noetic-rplidar-ros && \
-    mkdir -p /home/robotino/catkin_ws/src && \
+RUN mkdir -p /home/robotino/catkin_ws/src && \
+    chown -R robotino:robotino /home/robotino &&\
     cd /home/robotino/catkin_ws/src && \
-    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_init_workspace" && \
+    gosu robotino /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_init_workspace" && \
     cd /home/robotino/catkin_ws && \
-    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    gosu robotino /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
     cd /home/robotino/catkin_ws/src && \
-    git clone https://github.com/Slamtec/rplidar_ros.git && \
+    gosu robotino /bin/bash -c "git clone https://github.com/Slamtec/rplidar_ros.git" && \
     cd /home/robotino/catkin_ws && \
-    /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
-    echo "source ~/catkin_ws/devel/setup.bash" >> /home/robotino/.bashrc
+    gosu robotino /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    gosu robotino /bin/bash -c "echo 'source ~/catkin_ws/devel/setup.bash' >> /home/robotino/.bashrc"
     # chown -R robotino:robotino /home/robotino
 
 #
 ### for team program of BabyTigers-R
-RUN chown robotino:robotino -R /home/robotino && \
-    gosu robotino mkdir /home/robotino/git && \
+RUN mkdir /home/robotino/git && \
     cd /home/robotino/git && \
-    gosu robotino git clone https://github.com/wadaru/ros-rcll_refbox_peer && \
-    gosu robotino git clone https://github.com/wadaru/ros-rcll_btr_msgs && \
-    gosu robotino git clone https://github.com/wadaru/ros-rcll_ros_msgs && \
-    gosu robotino git clone https://github.com/wadaru/btr2023 && \
-    gosu robotino git clone https://github.com/babytigers-r/rcll && \
-    gosu robotino git clone https://github.com/wadaru/docker-config && \
-    gosu robotino ln -s /home/robotino/rcll-refbox/src/msgs /home/robotino/rcll-refbox/src/libs/llsf_msgs && \
+    git clone https://github.com/wadaru/ros-rcll_refbox_peer && \
+    git clone https://github.com/wadaru/ros-rcll_btr_msgs && \
+    git clone https://github.com/wadaru/ros-rcll_ros_msgs && \
+    git clone https://github.com/wadaru/btr2023 && \
+    git clone https://github.com/babytigers-r/rcll && \
+    git clone https://github.com/wadaru/docker-config && \
+    ln -s /home/robotino/rcll-refbox/src/msgs /home/robotino/rcll-refbox/src/libs/llsf_msgs && \
     cd /home/robotino/catkin_ws/src && \
-    gosu robotino ln -s /home/robotino/git/ros-rcll_refbox_peer . && \
-    gosu robotino ln -s /home/robotino/git/ros-rcll_btr_msgs . && \
-    gosu robotino ln -s /home/robotino/git/ros-rcll_ros_msgs . && \
-    gosu robotino cp /home/robotino/git/docker-config/rcll-btr/ros-rcll_refbox_peer/CMakeLists.txt /home/robotino/git/ros-rcll_refbox_peer/ && \
-    apt-get update -q && \
-        DEBIAN_FRONTEND=noninteractive apt-get install -yq gosu && \
+    ln -s /home/robotino/git/ros-rcll_refbox_peer . && \
+    ln -s /home/robotino/git/ros-rcll_btr_msgs . && \
+    ln -s /home/robotino/git/ros-rcll_ros_msgs . && \
+    cp /home/robotino/git/docker-config/rcll-btr/ros-rcll_refbox_peer/CMakeLists.txt /home/robotino/git/ros-rcll_refbox_peer/ && \
     cd /home/robotino/catkin_ws && \
-    # echo "cd ~/catkin_ws && catkin_make" >> /home/robotino/.bashrc
-    gosu robotino /bin/bash -c "cd /home/robotino/rcll-refbox && make && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make" 
+    chown robotino:robotino -R /home/robotino && \
+    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' 
 #
 #
 ### for robotino sim demo
-RUN dpkg --add-architecture i386 && \
-    apt-get update -q && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      wine32 gosu && \
-    gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
+RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
     gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
     chmod +x /home/robotino/robotinoSimDemo.sh 
 #
-#
-### for gnome-terminal
-RUN apt-get upgrade -yq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      gnome
-#
+#    
 ### for ssh server
 RUN mkdir /var/run/sshd && \
-    /bin/bash -c "sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config" && \
-    /bin/bash -c "echo robotino:robotino | chpasswd" && \
-    /bin/bash -c "update-rc.d ssh defaults"
-CMD ["/usr/sbin/sshd", "-D"]
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
+    update-rc.d ssh defaults &&\ 
+    service ssh start && \
+    echo "robotino:robotino" | chpasswd
 #
 #
 #
 RUN chown -R robotino:robotino /home/robotino
 ENV USER robotino
+EXPOSE 22
+ENTRYPOINT ["/usr/sbin/sshd", "-D"]
