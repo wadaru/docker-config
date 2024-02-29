@@ -53,7 +53,6 @@ RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
 #
 ### add user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
-    echo robotino:robotino | chpasswd && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # 
 ### install refbox
@@ -120,14 +119,14 @@ RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
 ### for ssh server
 RUN mkdir /var/run/sshd && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
-    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
-    update-rc.d ssh defaults &&\ 
-    service ssh start && \
-    echo "robotino:robotino" | chpasswd
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd 
 #
 #
 #
 RUN chown -R robotino:robotino /home/robotino
+RUN head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /startup.sh > /startup1.sh && \
+    echo "sudo /etc/init.d/ssh start" >> /startup1.sh && \
+    tail -n 1 /startup.sh >> /startup1.sh && \
+    cp /startup1.sh /startup.sh && \
+    rm /startup1.sh
 ENV USER robotino
-EXPOSE 22
-ENTRYPOINT ["/usr/sbin/sshd", "-D"]
