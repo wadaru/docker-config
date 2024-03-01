@@ -55,6 +55,20 @@ RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # 
+#
+#
+### for ssh server
+RUN mkdir /var/run/sshd && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
+    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
+    head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /startup.sh > /startup1.sh && \
+    echo "sudo /etc/init.d/ssh start" >> /startup1.sh && \
+    tail -n 1 /startup.sh >> /startup1.sh && \
+    cp /startup1.sh /startup.sh && \
+    rm /startup1.sh
+#
+#
+#
 ### install refbox
 RUN cd /home/robotino && \
     git clone https://github.com/robocup-logistics/rcll-refbox.git && \
@@ -75,6 +89,12 @@ RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && 
         robview4 aruco libopen62541 librealsense2 urg-library
 #
 #
+### for robotino sim demo
+RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
+    gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
+    chmod +x /home/robotino/robotinoSimDemo.sh
+#
+#
 ### for rplidar
 RUN mkdir -p /home/robotino/catkin_ws/src && \
     chown -R robotino:robotino /home/robotino &&\
@@ -91,7 +111,7 @@ RUN mkdir -p /home/robotino/catkin_ws/src && \
 
 #
 ### for team program of BabyTigers-R
-RUN mkdir /home/robotino/git && \
+RUN mkdir -p /home/robotino/git && \
     cd /home/robotino/git && \
     git clone https://github.com/wadaru/ros-rcll_refbox_peer && \
     git clone https://github.com/wadaru/ros-rcll_btr_msgs && \
@@ -105,28 +125,34 @@ RUN mkdir /home/robotino/git && \
     ln -s /home/robotino/git/ros-rcll_btr_msgs . && \
     ln -s /home/robotino/git/ros-rcll_ros_msgs . && \
     cp /home/robotino/git/docker-config/rcll-btr/ros-rcll_refbox_peer/CMakeLists.txt /home/robotino/git/ros-rcll_refbox_peer/ && \
+    mkdir -p /home/robotino/Downloads && \
+    cd /home/robotino/Downloads && \
+    wget https://doc.openrobotino.org/ROS/robotino-complete-20190308.zip && \
+    unzip robotino-complete-20190308.zip && \
+    mkdir -p /home/robotino/catkin_ws/src && \
+    cd /home/robotino/catkin_ws/src && \
+    ln -s /home/robotino/Downloads/ros/robotino_* . && \
+    rm /home/robotino/catkin_ws/src/robotino_node && \
     cd /home/robotino/catkin_ws && \
     chown robotino:robotino -R /home/robotino && \
-    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' 
+    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
+    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
 #
 #
-### for robotino sim demo
-RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
-    gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
-    chmod +x /home/robotino/robotinoSimDemo.sh 
-#
-#    
-### for ssh server
-RUN mkdir /var/run/sshd && \
-    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
-    sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd 
-#
+### for gazebo
+RUN gosu robotino /bin/bash -c 'echo -e "\
+export GAZEBO_RCLL=~/git/gazebo-rcll \n\
+export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \n\
+export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \n\
+export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world" >> /home/robotino/.bashrc'
+RUN gosu robotino /bin/bash -c "/home/robotino/git/rcll/gazebo/btr/setup.bash" && \
+    echo "setup.bash"
 #
 #
 RUN chown -R robotino:robotino /home/robotino
-RUN head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /startup.sh > /startup1.sh && \
-    echo "sudo /etc/init.d/ssh start" >> /startup1.sh && \
-    tail -n 1 /startup.sh >> /startup1.sh && \
-    cp /startup1.sh /startup.sh && \
-    rm /startup1.sh
 ENV USER robotino
