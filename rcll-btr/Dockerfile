@@ -86,7 +86,8 @@ RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && 
     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
     apt-get update -q && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-        robview4 aruco libopen62541 librealsense2 urg-library
+        robview4 aruco libopen62541 urg-library
+    # remove librealsense2
 #
 #
 ### for robotino sim demo
@@ -117,8 +118,8 @@ RUN mkdir -p /home/robotino/git && \
     git clone https://github.com/wadaru/ros-rcll_btr_msgs && \
     git clone https://github.com/wadaru/ros-rcll_ros_msgs && \
     git clone https://github.com/wadaru/btr2023 && \
-    git clone https://github.com/babytigers-r/rcll && \
     git clone https://github.com/wadaru/docker-config && \
+    git clone https://github.com/babytigers-r/rcll && \
     ln -s /home/robotino/rcll-refbox/src/msgs /home/robotino/rcll-refbox/src/libs/llsf_msgs && \
     cd /home/robotino/catkin_ws/src && \
     ln -s /home/robotino/git/ros-rcll_refbox_peer . && \
