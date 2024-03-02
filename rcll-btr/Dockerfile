@@ -78,6 +78,8 @@ RUN cd /home/robotino && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
     make -j"$(nproc)" && \
+    cp /home/robotino/docker-config/rcll-refbox/cfg/team/default-team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+    cp /home/robotino/docker-config/rcll-refbox/cfg/comm/default-comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
     rm -rf /home/robotino/docker-config && \
     chown -R robotino:robotino /home/robotino
 #
