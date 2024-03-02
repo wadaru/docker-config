@@ -164,3 +164,4 @@ RUN gosu robotino /bin/bash -c "/home/robotino/git/rcll/gazebo/btr/setup.bash" &
 #
 RUN chown -R robotino:robotino /home/robotino
 ENV USER robotino
+ENV PASSWORD robotino
