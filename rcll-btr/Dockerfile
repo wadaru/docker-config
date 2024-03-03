@@ -3,8 +3,11 @@ LABEL maintainer="Wataru Uemmura<wataru@kdel.org>"
 
 RUN apt-get update -q && \
     apt-get upgrade -yq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq openssh-server
+RUN apt-get update -q && \
+    apt-get upgrade -yq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-                     net-tools openssh-server git gcc build-essential vim screen ccache \
+                     net-tools git gcc build-essential vim screen ccache \
                      libmodbus-dev \
                      protobuf-compiler libprotobuf-dev libprotoc-dev \
                      libboost-all-dev libmodbus-dev \
@@ -157,8 +160,11 @@ export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics 
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \n\
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \n\
 export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \n\
-export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world" >> /home/robotino/.bashrc'
-RUN gosu robotino /bin/bash -c "/home/robotino/git/rcll/gazebo/btr/setup.bash" && \
+export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world" >> /home/robotino/.bashrc' && \
+    cd /home/robotino/git/rcll && \
+    git config --global --add safe.directory /home/robotino/git/rcll && \
+    git pull --ff-only && \
+    gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash" && \
     echo "setup.bash"
 #
 #
