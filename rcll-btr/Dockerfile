@@ -152,6 +152,7 @@ RUN mkdir -p /home/robotino/git && \
 #
 #
 ### for gazebo
+# ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
 RUN gosu robotino /bin/bash -c 'echo -e "\
 export GAZEBO_RCLL=~/git/gazebo-rcll \n\
 export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \n\
@@ -161,11 +162,11 @@ export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \n\
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \n\
 export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \n\
 export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world" >> /home/robotino/.bashrc' && \
+    rm -rf /home/robotino/git/gazebo-rcll && \
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
     git pull --ff-only && \
-    gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash" && \
-    echo "setup.bash"
+    gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash"
 #
 #
 RUN chown -R robotino:robotino /home/robotino
