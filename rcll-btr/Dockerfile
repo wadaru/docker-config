@@ -160,6 +160,7 @@ export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \n\
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \n\
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \n\
 export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/pyro \n\
 export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \n\
 export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world" >> /home/robotino/.bashrc' && \
     rm -rf /home/robotino/git/gazebo-rcll && \
