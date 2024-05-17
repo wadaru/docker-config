@@ -153,7 +153,7 @@ RUN mkdir -p /home/robotino/git && \
 #
 ### for gazebo
 # ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
-RUN gosu robotino /bin/bash -c 'echo -e "\
+RUN gosu robotino /bin/bash -c 'echo -e \"\
 export GAZEBO_RCLL=~/git/gazebo-rcll \n\
 export BTR_GAZEBO=~/git/rcll/gazebo/btr \n\
 export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \n\
