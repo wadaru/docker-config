@@ -153,19 +153,19 @@ RUN mkdir -p /home/robotino/git && \
 #
 ### for gazebo
 # ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
-RUN gosu robotino /bin/bash -c 'echo -e \"\
-export GAZEBO_RCLL=~/git/gazebo-rcll \n\
-export BTR_GAZEBO=~/git/rcll/gazebo/btr \n\
-export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$BTR_GAZEBO/models \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/pyro \n\
-export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \n\
-export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \n\
-export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \n\" >> /home/robotino/.bashrc' && \
+RUN gosu robotino /bin/bash -c 'echo -e "\
+export GAZEBO_RCLL=~/git/gazebo-rcll \\n\
+export BTR_GAZEBO=~/git/rcll/gazebo/btr \\n\
+export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$BTR_GAZEBO/models \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \\n\
+export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/pyro \\n\
+export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \\n\
+export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \\n\
+export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotino/.bashrc' && \
     rm -rf /home/robotino/git/gazebo-rcll && \
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
