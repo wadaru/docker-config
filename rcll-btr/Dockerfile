@@ -52,7 +52,7 @@ RUN mkdir -p /tmp/clips && cd /tmp/clips && \
      sh -c 'echo "deb https://ftp.debian.org/debian/ bookworm contrib main non-free non-free-firmware" > /etc/apt/sources.list.d/bookworm.list' && \
      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
      apt-get update -q && \
-     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips && \
+     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips libclips-dev libglibmm-2.4 apt-utils && \
      git clone https://github.com/timn/clipsmm
 #     ./confiogure
 #     wget http://ftp.jp.debian.org/debian/pool/main/libx/libxaw/libxaw7-dev_1.0.13-1+b2_arm64.deb &&\
