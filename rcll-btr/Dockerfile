@@ -1,4 +1,4 @@
-FROM --platform=linux/x86_64 tiryoh/ros-desktop-vnc:noetic
+FROM tiryoh/ros-desktop-vnc:noetic
 LABEL maintainer="Wataru Uemmura<wataru@kdel.org>"
 
 RUN apt-get update -q && \
@@ -28,10 +28,6 @@ RUN apt-get update -q && \
       ros-noetic-catkin &&\
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
       gnome && \
-    dpkg --add-architecture i386 && \
-    apt-get update -q && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-      wine32 gosu && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
       python3-pip python3-usb && \
     rm -rf /var/lib/apt/lists/*
@@ -39,25 +35,41 @@ RUN apt-get update -q && \
 ### for python
 RUN pip3 install numpy-quaternion scipy numpy pyrealsense2
 #
-### install CLIPS
-RUN mkdir -p /tmp/clips && cd /tmp/clips && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips_6.30-2ppa4~bionic1_amd64.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips-dev_6.30-2ppa4~bionic1_amd64.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/xclips_6.30-2ppa4~bionic1_amd64.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm-dev_0.3.4-1ppa1~bionic1_amd64.deb && \
-    wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm_0.3.4-1ppa1~bionic1_amd64.deb && \
-    dpkg -i *.deb && \
-    rm -rf /tmp/clips
+### install CLIPS for x86_64 (amd64)
+# RUN mkdir -p /tmp/clips && cd /tmp/clips && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips_6.30-2ppa4~bionic1_amd64.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips-dev_6.30-2ppa4~bionic1_amd64.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/xclips_6.30-2ppa4~bionic1_amd64.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm-dev_0.3.4-1ppa1~bionic1_amd64.deb && \
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm_0.3.4-1ppa1~bionic1_amd64.deb && \
+#     dpkg -i *.deb && \
+#     rm -rf /tmp/clips
 #
+### install CLIPS from source 
+RUN mkdir -p /tmp/clips && cd /tmp/clips && \
+     sh -c 'echo "deb https://ftp.debian.org/debian/ bookworm contrib main non-free non-free-firmware" > /etc/apt/sources.list.d/bookworm.list' && \
+     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
+     apt-get update -q && \
+     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips && \
+     git clone https://github.com/timn/clipsmm
+#     ./confiogure
+#     wget http://ftp.jp.debian.org/debian/pool/main/libx/libxaw/libxaw7-dev_1.0.13-1+b2_arm64.deb &&\
+#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30.orig.tar.gz && \
+#     tar zxvf clips_6.30.orig.tar.gz && \
+#     cd clips-6.30 && \
+#     ./configure && \
+#    dpkg -i *.deb && \
+#    rm -rf /tmp/clips
+# 
 ### install opcua
-RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
-    git clone https://github.com/freeopcua/freeopcua && \
-    cd /tmp/opcua/freeopcua && \
-    cmake . && \
-    make -j"$(nproc)"&& sudo make install && sudo ldconfig && \
-    rm -rf /tmp/opcua
+#RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
+#    git clone https://github.com/freeopcua/freeopcua && \
+#    cd /tmp/opcua/freeopcua && \
+#    cmake . && \
+#    make -j"$(nproc)"&& sudo make install && sudo ldconfig && \
+#    rm -rf /tmp/opcua
 #
 ### add user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
@@ -85,25 +97,26 @@ RUN cd /home/robotino && \
     git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
-    make -j"$(nproc)" && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-    rm -rf /home/robotino/docker-config && \
-    chown -R robotino:robotino /home/robotino
+    echo "stop"
+#     make -j"$(nproc)" && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
+#     rm -rf /home/robotino/docker-config && \
+#     chown -R robotino:robotino /home/robotino
 #
-### install RobView
-RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
-    sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
-    apt-get update -q && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-        robview4 aruco libopen62541 urg-library
-    # remove librealsense2
+# ### install RobView
+# RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
+#     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
+#     apt-get update -q && \
+#     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+#         robview4 aruco libopen62541 urg-library
+#     # remove librealsense2
 #
 #
-### for robotino sim demo
-RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
-    gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
-    chmod +x /home/robotino/robotinoSimDemo.sh
+# ### for robotino sim demo
+# RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
+#     gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
+#     chmod +x /home/robotino/robotinoSimDemo.sh
 #
 #
 ### for rplidar
@@ -146,9 +159,10 @@ RUN mkdir -p /home/robotino/git && \
     rm /home/robotino/catkin_ws/src/robotino_node && \
     cd /home/robotino/catkin_ws && \
     chown robotino:robotino -R /home/robotino && \
-    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
-    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
-    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
+    echo "stop"
+#    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+#    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
+#    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
 #
 #
 ### for gazebo
