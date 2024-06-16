@@ -49,18 +49,16 @@ RUN pip3 install numpy-quaternion scipy numpy pyrealsense2
 #
 ### install CLIPS from source 
 RUN mkdir -p /tmp/clips && cd /tmp/clips && \
-     sh -c 'echo "deb https://ftp.debian.org/debian/ bookworm contrib main non-free non-free-firmware" > /etc/apt/sources.list.d/bookworm.list' && \
+     sh -c 'echo "deb https://ftp.debian.org/debian/ bullseye contrib main non-free non-free-firmware" > /etc/apt/sources.list.d/bullseye.list' && \
      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
      apt-get update -q && \
-     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips libclips-dev libglibmm-2.4 apt-utils && \
-     git clone https://github.com/timn/clipsmm
-#     ./confiogure
-#     wget http://ftp.jp.debian.org/debian/pool/main/libx/libxaw/libxaw7-dev_1.0.13-1+b2_arm64.deb &&\
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30.orig.tar.gz && \
-#     tar zxvf clips_6.30.orig.tar.gz && \
-#     cd clips-6.30 && \
-#     ./configure && \
-#    dpkg -i *.deb && \
+     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips libclips-dev libglibmm-2.4 apt-utils libsigc++-2.0-dev && \
+     apt-get install -qy build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev  python-capstone && \
+     git clone https://github.com/timn/clipsmm && /
+     export "CLIPSMM_CFLAGS=-I /usr/include/clips/ -I /usr/include/sigc++-2.0/ -I /usr/lib/aarch64-linux-gnu/sigc++-2.0/include -I /usr/include/glibmm-2.4/ -I /usr/lib/aarch64-linux-gnu/glibmm-2.4/include/ -I /usr/include/glib-2.0/ -I /usr/lib/aarch64-linux-gnu/glib-2.0/include/" && \
+     export CLIPSMM_LIBS=/usr/lib/libclips.so.6 && \
+     ./autogen.sh && \
+     ./confiogure
 #    rm -rf /tmp/clips
 # 
 ### install opcua
