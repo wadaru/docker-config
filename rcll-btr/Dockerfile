@@ -54,11 +54,12 @@ RUN mkdir -p /tmp/clips && cd /tmp/clips && \
      apt-get update -q && \
      DEBIAN_FRONTEND=noninteractive apt-get install -yq clips libclips-dev libglibmm-2.4 apt-utils libsigc++-2.0-dev && \
      apt-get install -qy build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev  python-capstone && \
-     git clone https://github.com/timn/clipsmm && /
+     git clone https://github.com/timn/clipsmm && \
      export "CLIPSMM_CFLAGS=-I /usr/include/clips/ -I /usr/include/sigc++-2.0/ -I /usr/lib/aarch64-linux-gnu/sigc++-2.0/include -I /usr/include/glibmm-2.4/ -I /usr/lib/aarch64-linux-gnu/glibmm-2.4/include/ -I /usr/include/glib-2.0/ -I /usr/lib/aarch64-linux-gnu/glib-2.0/include/" && \
      export CLIPSMM_LIBS=/usr/lib/libclips.so.6 && \
+     cd clipsmm &&\
      ./autogen.sh && \
-     ./confiogure
+     ./configure
 #    rm -rf /tmp/clips
 # 
 ### install opcua
