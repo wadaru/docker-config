@@ -1,4 +1,5 @@
 FROM tiryoh/ros-desktop-vnc:noetic
+ARG TARGETPLATFORM
 LABEL maintainer="Wataru Uemmura<wataru@kdel.org>"
 
 RUN apt-get update -q && \
@@ -33,7 +34,7 @@ RUN apt-get update -q && \
     rm -rf /var/lib/apt/lists/*
 #
 ### for python
-RUN pip3 install numpy-quaternion scipy numpy pyrealsense2
+RUN pip3 install numpy-quaternion scipy numpy pyrealsense2 cv_bridge
 #
 ### install CLIPS for x86_64 (amd64)
 # RUN mkdir -p /tmp/clips && cd /tmp/clips && \
@@ -80,11 +81,11 @@ RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-gro
 RUN mkdir /var/run/sshd && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
     sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
-    head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /startup.sh > /startup1.sh && \
-    echo "sudo /etc/init.d/ssh start" >> /startup1.sh && \
-    tail -n 1 /startup.sh >> /startup1.sh && \
-    cp /startup1.sh /startup.sh && \
-    rm /startup1.sh
+    head -n `expr \`wc /entrypoint.sh|awf print {$1}\` -1 ` /entrypoint.sh > /entrypoint1.sh && \
+    echo "sudo /etc/init.d/ssh start" >> /entrypoint1.sh && \
+    tail -n 1 /entrypoint.sh >> /entrypoint1.sh && \
+    cp /entrypoint1.sh /entrypoint.sh && \
+    rm /entrypoint1.sh
 #
 #
 #
@@ -167,18 +168,20 @@ RUN mkdir -p /home/robotino/git && \
 ### for gazebo
 # ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
 RUN gosu robotino /bin/bash -c 'echo -e "\
-export GAZEBO_RCLL=~/git/gazebo-rcll \\n\
-export BTR_GAZEBO=~/git/rcll/gazebo/btr \\n\
-export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$BTR_GAZEBO/models \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \\n\
-export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/pyro \\n\
-export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \\n\
-export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \\n\
-export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotino/.bashrc' && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+                     gazebo11 gazebo11-common libcharls-dev && \
+    export GAZEBO_RCLL=~/git/gazebo-rcll \\n\
+    export BTR_GAZEBO=~/git/rcll/gazebo/btr \\n\
+    export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_RCLL/models \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$BTR_GAZEBO/models \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/carologistics \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/btr \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/bbu \\n\
+    export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:\$GAZEBO_RCLL/models/pyro \\n\
+    export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \\n\
+    export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \\n\
+    export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotino/.bashrc' && \
     rm -rf /home/robotino/git/gazebo-rcll && \
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
