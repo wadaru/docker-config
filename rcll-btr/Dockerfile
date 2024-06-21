@@ -34,44 +34,9 @@ RUN apt-get update -q && \
     rm -rf /var/lib/apt/lists/*
 #
 ### for python
-RUN pip3 install numpy-quaternion scipy numpy pyrealsense2 cv_bridge
+RUN pip3 install numpy-quaternion scipy numpy pyrealsense2 cv_bridge websockify
 #
-### install CLIPS for x86_64 (amd64)
-# RUN mkdir -p /tmp/clips && cd /tmp/clips && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips_6.30-2ppa4~bionic1_amd64.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/clips-common_6.30-2ppa4~bionic1_all.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips_6.30-2ppa4~bionic1_amd64.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/libclips-dev_6.30-2ppa4~bionic1_amd64.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/c/clips/xclips_6.30-2ppa4~bionic1_amd64.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm-dev_0.3.4-1ppa1~bionic1_amd64.deb && \
-#     wget http://ppa.launchpad.net/timn/clips/ubuntu/pool/main/libc/libclipsmm/libclipsmm_0.3.4-1ppa1~bionic1_amd64.deb && \
-#     dpkg -i *.deb && \
-#     rm -rf /tmp/clips
-#
-### install CLIPS from source 
-RUN mkdir -p /tmp/clips && cd /tmp/clips && \
-     sh -c 'echo "deb https://ftp.debian.org/debian/ bullseye contrib main non-free non-free-firmware" > /etc/apt/sources.list.d/bullseye.list' && \
-     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
-     apt-get update -q && \
-     DEBIAN_FRONTEND=noninteractive apt-get install -yq clips libclips-dev libglibmm-2.4 apt-utils libsigc++-2.0-dev && \
-     apt-get install -qy build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev  python-capstone && \
-     git clone https://github.com/timn/clipsmm && \
-     export "CLIPSMM_CFLAGS=-I /usr/include/clips/ -I /usr/include/sigc++-2.0/ -I /usr/lib/aarch64-linux-gnu/sigc++-2.0/include -I /usr/include/glibmm-2.4/ -I /usr/lib/aarch64-linux-gnu/glibmm-2.4/include/ -I /usr/include/glib-2.0/ -I /usr/lib/aarch64-linux-gnu/glib-2.0/include/" && \
-     export CLIPSMM_LIBS=/usr/lib/libclips.so.6 && \
-     cd clipsmm &&\
-     ./autogen.sh && \
-     ./configure
-#    rm -rf /tmp/clips
-# 
-### install opcua
-#RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
-#    git clone https://github.com/freeopcua/freeopcua && \
-#    cd /tmp/opcua/freeopcua && \
-#    cmake . && \
-#    make -j"$(nproc)"&& sudo make install && sudo ldconfig && \
-#    rm -rf /tmp/opcua
-#
-### add user 
+### a https://github.com/Tiryoh/docker-ros2-desktop-vnc/issue/131dd user 
 RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-group --groups adm,sudo robotino && \
     echo "robotino ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # 
@@ -104,21 +69,6 @@ RUN cd /home/robotino && \
 #     rm -rf /home/robotino/docker-config && \
 #     chown -R robotino:robotino /home/robotino
 #
-# ### install RobView
-# RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
-#     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
-#     apt-get update -q && \
-#     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-#         robview4 aruco libopen62541 urg-library
-#     # remove librealsense2
-#
-#
-# ### for robotino sim demo
-# RUN gosu robotino /bin/bash -c "echo '#!/bin/bash' > ~/robotinoSimDemo.sh" && \
-#     gosu robotino /bin/bash -c "echo 'if [ -d ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo ] ; then wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Didactic/RobotinoSim\ Demo/bin/robotinosim.exe; else wget https://doc.openrobotino.org/download/RobotinoSim/RobotinoSimDemo-1.4.2.exe && wine RobotinoSimDemo-1.4.2.exe; fi' >> ~/robotinoSimDemo.sh" && \
-#     chmod +x /home/robotino/robotinoSimDemo.sh
-#
-#
 ### for rplidar
 RUN mkdir -p /home/robotino/catkin_ws/src && \
     chown -R robotino:robotino /home/robotino &&\
@@ -130,6 +80,7 @@ RUN mkdir -p /home/robotino/catkin_ws/src && \
     gosu robotino /bin/bash -c "git clone https://github.com/Slamtec/rplidar_ros.git" && \
     cd /home/robotino/catkin_ws && \
     gosu robotino /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    gosu robotino /bin/bash -c "echo 'source /opt/ros/noetic/setup.bash' >> /home/robotino/.bashrc" && \
     gosu robotino /bin/bash -c "echo 'source ~/catkin_ws/devel/setup.bash' >> /home/robotino/.bashrc"
     # chown -R robotino:robotino /home/robotino
 
@@ -167,6 +118,10 @@ RUN mkdir -p /home/robotino/git && \
 #
 ### for gazebo
 # ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
+RUN apt-get update -q && \
+    apt-get upgrade -yq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+                    gazebo11 gazebo11-common libcharls-dev
 RUN gosu robotino /bin/bash -c 'echo -e "\
     export GAZEBO_RCLL=~/git/gazebo-rcll \\n\
     export BTR_GAZEBO=~/git/rcll/gazebo/btr \\n\
@@ -180,8 +135,6 @@ RUN gosu robotino /bin/bash -c 'echo -e "\
     export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \\n\
     export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \\n\
     export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotino/.bashrc' && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-                     gazebo11 gazebo11-common libcharls-dev && \
     rm -rf /home/robotino/git/gazebo-rcll && \
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
