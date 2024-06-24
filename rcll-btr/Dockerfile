@@ -56,18 +56,15 @@ RUN mkdir /var/run/sshd && \
 #
 ### install refbox
 RUN cd /home/robotino && \
-    git clone https://github.com/robocup-logistics/rcll-refbox.git && \
     git clone https://github.com/wadaru/docker-config && \
-    cd /home/robotino/rcll-refbox && \
-    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
+    git clone --recursive https://github.com/wadaru/protobuf_comm && \
+    ln -s protobuf_comm/rcll-refbox . && \
+    cd rcll-refbox && \
     echo "stop"
-#     make -j"$(nproc)" && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-#     rm -rf /home/robotino/docker-config && \
-#     chown -R robotino:robotino /home/robotino
+#    make -j"$(nproc)" && \
+#    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+#    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
+#    chown -R robotino:robotino /home/robotino
 #
 ### for rplidar
 RUN mkdir -p /home/robotino/catkin_ws/src && \
