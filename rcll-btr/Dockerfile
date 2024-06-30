@@ -60,11 +60,10 @@ RUN cd /home/robotino && \
     git clone --recursive https://github.com/wadaru/protobuf_comm && \
     ln -s protobuf_comm/rcll-refbox . && \
     cd rcll-refbox && \
-    echo "stop"
-#    make -j"$(nproc)" && \
-#    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-#    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-#    chown -R robotino:robotino /home/robotino
+    make -j"$(nproc)" && \
+    chown -R robotino:robotino /home/robotino
+    # cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+    # cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
 #
 ### for rplidar
 RUN mkdir -p /home/robotino/catkin_ws/src && \
@@ -99,7 +98,7 @@ RUN mkdir -p /home/robotino/git && \
     cp /home/robotino/git/docker-config/rcll-btr/ros-rcll_refbox_peer/CMakeLists.txt /home/robotino/git/ros-rcll_refbox_peer/ && \
     mkdir -p /home/robotino/Downloads && \
     cd /home/robotino/Downloads && \
-    wget https://doc.openrobotino.org/ROS/robotino-complete-20190308.zip && \
+    wget https://rins.st.ryukoku.ac.jp/~wataru/robotino-complete-20190308.zip && \
     unzip robotino-complete-20190308.zip && \
     mkdir -p /home/robotino/catkin_ws/src && \
     cd /home/robotino/catkin_ws/src && \
@@ -111,15 +110,25 @@ RUN mkdir -p /home/robotino/git && \
 #    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
 #    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
 #    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
+#     wget https://doc.openrobotino.org/ROS/robotino-complete-20190308.zip && \
 #
+
 #
+### install opcua
+RUN mkdir -p /tmp/opcua && cd /tmp/opcua && \
+    git clone https://github.com/freeopcua/freeopcua && \
+    cd /tmp/opcua/freeopcua && \
+    cmake . && \
+    make -j"$(nproc)"&& sudo make install && sudo ldconfig && \
+    rm -rf /tmp/opcua
+
 ### for gazebo
-# ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" /dev/null
+# install script is ~/git/rcll/gazebo/btr/setup.bash
 RUN apt-get update -q && \
     apt-get upgrade -yq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-                    gazebo11 gazebo11-common libcharls-dev
-RUN gosu robotino /bin/bash -c 'echo -e "\
+                    gazebo11 gazebo11-common libcharls-dev ros-noetic-gazebo-dev && \
+    gosu robotino /bin/bash -c 'echo -e "\
     export GAZEBO_RCLL=~/git/gazebo-rcll \\n\
     export BTR_GAZEBO=~/git/rcll/gazebo/btr \\n\
     export GAZEBO_PLUGIN_PATH=\$GAZEBO_PLUGIN_PATH:\$GAZEBO_RCLL/build/plugins \\n\
@@ -132,7 +141,6 @@ RUN gosu robotino /bin/bash -c 'echo -e "\
     export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf.world \\n\
     export GAZEBO_WORLD_PATH=\$GAZEBO_RCLL/worlds/carologistics/llsf_btr.world \\n\
     export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotino/.bashrc' && \
-    rm -rf /home/robotino/git/gazebo-rcll && \
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
     git pull --ff-only && \
