@@ -91,13 +91,14 @@ RUN cd /home/robotino && \
     git clone https://github.com/robocup-logistics/rcll-refbox.git && \
     git clone https://github.com/wadaru/docker-config && \
     cd /home/robotino/rcll-refbox && \
+    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
-    echo "stop"
-##    make -j"$(nproc)" && \
-##    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-##    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-##    rm -rf /home/robotino/docker-config && \
-##    chown -R robotino:robotino /home/robotino
+    make -j"$(nproc)" && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
+    rm -rf /home/robotino/docker-config && \
+    chown -R robotino:robotino /home/robotino
 ### <== old script ==>
 #    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
 #    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
@@ -128,6 +129,7 @@ RUN mkdir -p /home/robotino/catkin_ws/src && \
     gosu robotino /bin/bash -c "git clone https://github.com/Slamtec/rplidar_ros.git" && \
     cd /home/robotino/catkin_ws && \
     gosu robotino /bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/catkin_make" && \
+    gosu robotino /bin/bash -c "echo 'source /opt/ros/noetic/setup.bash' >> /home/robotino/.bashrc" && \
     gosu robotino /bin/bash -c "echo 'source ~/catkin_ws/devel/setup.bash' >> /home/robotino/.bashrc"
     # chown -R robotino:robotino /home/robotino
 
@@ -158,6 +160,8 @@ RUN mkdir -p /home/robotino/git && \
     cd /home/robotino/catkin_ws && \
     chown robotino:robotino -R /home/robotino && \
     echo "stop"
+##    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
+##    gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
 ##    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
 ##    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
 ##    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
@@ -184,9 +188,14 @@ export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotin
     cd /home/robotino/git/rcll && \
     git config --global --add safe.directory /home/robotino/git/rcll && \
     git pull --ff-only && \
+    echo "stop 2"
+##    gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash"
+#
+#
+#
+# final scripts?
+RUN gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
     gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash"
-#
-#
 RUN chown -R robotino:robotino /home/robotino
 ENV USER robotino
 ENV PASSWORD robotino
