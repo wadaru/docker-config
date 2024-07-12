@@ -81,35 +81,32 @@ RUN mkdir /var/run/sshd && \
 ### install refbox
 RUN cd /home/robotino && \
     git clone --recursive https://github.com/wadaru/protobuf_comm && \
-    ln -s protobuf_comm/rcll-refbox rcll-refbox_protobuf_comm && \
-    cd rcll-refbox_protobuf_comm && \
+    ln -s protobuf_comm/rcll-refbox . && \
+    cd rcll-refbox && \
     make -j"$(nproc)" && \
     chown -R robotino:robotino /home/robotino
 # 
 ### install refbox
-RUN cd /home/robotino && \
-    git clone https://github.com/robocup-logistics/rcll-refbox.git && \
-    git clone https://github.com/wadaru/docker-config && \
-    cd /home/robotino/rcll-refbox && \
-    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
-    make -j"$(nproc)" && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-    rm -rf /home/robotino/docker-config && \
-    chown -R robotino:robotino /home/robotino
-### <== old script ==>
-#    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
-#    cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
+# RUN cd /home/robotino && \
+#     git clone https://github.com/robocup-logistics/rcll-refbox.git && \
+#     git clone https://github.com/wadaru/docker-config && \
+#     cd /home/robotino/rcll-refbox && \
+#     git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
+#     make -j"$(nproc)" && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
+#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
+#     rm -rf /home/robotino/docker-config && \
+#     chown -R robotino:robotino /home/robotino
 #
 ### install RobView
-# RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
-#     sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
-#     apt-get update -q && \
-#    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-#          robview4 aruco libopen62541 urg-library
-#    # remove librealsense2
+RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
+    sh -c 'echo "deb http://packages2.openrobotino.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/openrobotino.list' && \
+    apt-get update -q && \
+   DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+         robview4 aruco libopen62541 urg-library
+   # remove librealsense2
 #
 #
 ### for robotino sim demo
@@ -194,7 +191,8 @@ export GAZEBO_WORLD_PATH=\$BTR_GAZEBO/world/llsf_btr.world \\n" >> /home/robotin
 #
 #
 # final scripts?
-RUN gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+# RUN gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+RUN \
     gosu robotino /bin/bash -c "USER=robotino; /home/robotino/git/rcll/gazebo/btr/setup.bash"
 RUN chown -R robotino:robotino /home/robotino
 ENV USER robotino
