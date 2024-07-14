@@ -86,19 +86,21 @@ RUN cd /home/robotino && \
     make -j"$(nproc)" && \
     chown -R robotino:robotino /home/robotino
 # 
-### install refbox
-# RUN cd /home/robotino && \
-#     git clone https://github.com/robocup-logistics/rcll-refbox.git && \
-#     git clone https://github.com/wadaru/docker-config && \
-#     cd /home/robotino/rcll-refbox && \
-#     git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/rcll-refbox/etc/buildsys/ && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/rcll-refbox/src/libs/mps_comm/opcua/ && \
-#     make -j"$(nproc)" && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/rcll-refbox/cfg/team/ && \
-#     cp /home/robotino/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/rcll-refbox/cfg/comm/ && \
-#     rm -rf /home/robotino/docker-config && \
-#     chown -R robotino:robotino /home/robotino
+### install old refbox
+RUN cd /home/robotino && \
+    mkdir old-refbox && \
+    cd old-refbox && \
+    git clone https://github.com/robocup-logistics/rcll-refbox.git && \
+    git clone https://github.com/wadaru/docker-config && \
+    cd /home/robotino/old-refbox/rcll-refbox && \
+    git checkout d0bcd590ab140691645fe8b651a3d00afad39151 && \
+    cp /home/robotino/old-refbox/docker-config/rcll-btr/rcll-refbox/etc/buildsys/config.mk /home/robotino/old-refbox/rcll-refbox/etc/buildsys/ && \
+    cp /home/robotino/old-refbox/docker-config/rcll-btr/rcll-refbox/src/libs/mps_comm/opcua/opc_utils.cpp /home/robotino/old-refbox/rcll-refbox/src/libs/mps_comm/opcua/ && \
+    make -j"$(nproc)" && \
+    cp /home/robotino/old-refbox/docker-config/rcll-btr/rcll-refbox/cfg/team/default_team.yaml /home/robotino/old-refbox/rcll-refbox/cfg/team/ && \
+    cp /home/robotino/old-refbox/docker-config/rcll-btr/rcll-refbox/cfg/comm/default_comm.yaml /home/robotino/old-refbox/rcll-refbox/cfg/comm/ && \
+    rm -rf /home/robotino/old-refbox/docker-config && \
+    chown -R robotino:robotino /home/robotino
 #
 ### install RobView
 RUN wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add - && \
@@ -153,15 +155,12 @@ RUN mkdir -p /home/robotino/git && \
     mkdir -p /home/robotino/catkin_ws/src && \
     cd /home/robotino/catkin_ws/src && \
     ln -s /home/robotino/Downloads/ros/robotino_* . && \
-    rm /home/robotino/catkin_ws/src/robotino_node && \
+    rm robotino_node && \
     cd /home/robotino/catkin_ws && \
     chown robotino:robotino -R /home/robotino && \
-    echo "stop"
-##    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
-##    gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
-##    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
-##    gosu robotino ln -s /home/robotino/Downloads/ros/robotino_* . && \
-##    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
+    gosu robotino /bin/bash -c 'cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make' && \
+    gosu robotino /bin/bash -c 'cd /home/robotino/rcll-refbox && make -j"$(nproc)" && cd /home/robotino/catkin_ws && source /home/robotino/.bashrc && source /home/robotino/catkin_ws/devel/setup.bash && /opt/ros/noetic/bin/catkin_make'
 ### <== old scripts ==>
 # wget https://doc.openrobotino.org/ROS/robotino-complete-20190308.zip && \
 #
