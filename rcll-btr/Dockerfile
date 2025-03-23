@@ -69,10 +69,10 @@ RUN useradd --create-home --home-dir /home/robotino --shell /bin/bash --user-gro
 RUN mkdir /var/run/sshd && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config && \
     sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd && \
-    head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /startup.sh > /startup1.sh && \
+    head -n `expr \`wc /startup.sh|awf print {$1}\` -1 ` /entrypoint.sh > /startup1.sh && \
     echo "sudo /etc/init.d/ssh start" >> /startup1.sh && \
-    tail -n 1 /startup.sh >> /startup1.sh && \
-    cp /startup1.sh /startup.sh && \
+    tail -n 1 /entrypoint.sh >> /startup1.sh && \
+    cp /startup1.sh /entrypoint.sh && \
     rm /startup1.sh
 #
 #
